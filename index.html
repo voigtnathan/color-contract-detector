@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Contrast Detector</title>
+</head>
+
+<body>
+
+
+    <input type="color" value="#000000" />
+    <div id="panel">Text Matches To Background</div>
+
+
+    <!-- brain.js -->
+    <script src="https://unpkg.com/brain.js@1.1.2/browser.min.js"></script>
+    <!-- function to convert hexadecimal color codes to rgb that can be accepted by brain.js -->
+    <script>
+        function convertRgb(hex) {
+            // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+            var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+            hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+                return r + r + g + g + b + b;
+            });
+
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: Math.round(parseInt(result[1], 16) / 2.55) / 100,
+                g: Math.round(parseInt(result[2], 16) / 2.55) / 100,
+                b: Math.round(parseInt(result[3], 16) / 2.55) / 100
+            } : null;
+        }
+    </script>
+
+    <!-- grabs the inputed value and runs it through the neuralnetwork -->
+    <script>
+        const input = document.querySelector("input");
+        const panel = document.querySelector("#panel");
+
+        input.addEventListener("change", (event) => {
+            const rgb = convertRgb(event.target.value);
+            const network = new brain.NeuralNetwork();
+
+
+            network.train([
+                { input: { r: 0.03, g: 0.7, b: 0.5 }, output: { dark: 1 } },
+                { input: { r: 0.16, g: 0.09, b: 0.2 }, output: { light: 1 } },
+                { input: { r: 0.5, g: 0.5, b: 1.0 }, output: { light: 1 } },
+                { input: { r: 0.0431, g: 0.3458, b: 0.2627 }, output: { light: 1 } },
+                { input: { r: 0.9333, g: 0.8784, b: 0.5686 }, output: { dark: 1 } },
+                { input: { r: 0.3490, g: 0.2705, b: 0.8901 }, output: { light: 1 } },
+                { input: { r: 0.3843, g: 0.4862, b: 0.0941 }, output: { light: 1 } },
+                { input: { r: 0.2274, g: 0.0078, b: 0.8627 }, output: { light: 1 } },
+                { input: { r: 0.3764, g: 0.3843, b: 0.6941 }, output: { light: 1 } },
+                { input: { r: 0.2862, g: 0.5960, b: 0.0470 }, output: { light: 1 } },
+                { input: { r: 0.6549, g: 0.7019, b: 0.7098 }, output: { dark: 1 } },
+                { input: { r: 0.0431, g: 0.0666, b: 0.4862 }, output: { light: 1 } },
+                { input: { r: 0.8431, g: 0.4431, b: 0.2627 }, output: { light: 1 } },
+            ]);
+            const result = brain.likely(rgb, network);
+            console.log(result);
+            panel.style.background = event.target.value;
+            panel.style.color = result == "dark" ? "black" : "white";
+        });
+    </script>
+
+
+</body>
+
+</html>
